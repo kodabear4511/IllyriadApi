@@ -1,5 +1,3 @@
-$:.push '/home/mattgawa/ruby/gems'
-
 require 'rubygems'
 require 'sinatra'
 require './service'

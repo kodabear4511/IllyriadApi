@@ -1,3 +1,5 @@
+require './models/race'
+require './models/player'
 require './models/town'
-#require './models/player'
-#require './models/alliance'
+require './models/alliance_role'
+require './models/alliance'

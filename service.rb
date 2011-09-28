@@ -1,5 +1,3 @@
-$:.push '/home/mattgawa/ruby/gems'
-
 # Ruby files
 require 'rubygems'
 require 'sinatra/base'
@@ -27,19 +25,31 @@ module IllyriadApi
     private
         @@db = nil
         
-    public        
+    public
+        helpers do
+            def serialize(data, format)
+                if format.upcase == "XML"
+                    data.to_xml
+                elsif format.upcase == "JSON"
+                    data.to_json
+                else
+                    not_found
+                end
+            end
+        end
+        
         def self.setDatabase(db = Sequel.connect("sqlite://illy.sqlite"))
             @@db ||= db
 
             Sequel::Model.db = @@db
             Sequel::Model.plugin :xml_serializer
+            Sequel::Model.plugin :json_serializer
             
             # Load IllyriadApi data models
             require './data_models'
         end
         
         def self.run!
-            
             self.setDatabase
             super
         end
@@ -60,62 +70,87 @@ module IllyriadApi
             # raise "something bad happened"
         # end
         
-        # Alliances
-        # get '/alliances' do
-            # "Get ALL alliances"
-        # end
-        
-        # get %r(/alliances/id/([1-9]\d*)) do |id|
-            # "Get alliance ##{id}"
-        # end
-        
-        # get %r(/alliances/ticker/(.+)) do |ticker|
-            # "Get alliance with ticker '#{ticker}'"
-        # end
-        
-        # get %r(/alliances/name/(.+)) do |name|
-            # "Get alliance named '#{name}'"
-        # end
-        
-        # Players
-        # get '/players' do
-            # "Get ALL players"
-        # end
-        
-        # get %r{/players/id/([1-9]\d*)} do |id|
-            # "Get player ##{id}"
-        # end
-        
-        # get %r{/players/name/(.{3,})} do |name|
-            # "Get player named '#{name}'"
-        # end
-        
-        # Towns
-        get '/towns' do
-            t = Town.all
-            if t == nil
+        # Alliances        
+        get %r(/alliances/id/([1-9]\d*).(xml|json)) do |id, format|
+            a = Alliance[id]
+            
+            if a.nil?
                 not_found
             else
-                t.to_xml(:array_root_name => "towns", :root_name => "town")
+                serialize(a, format)
             end
         end
         
-        get %r{/towns/id/([1-9]\d*)} do |id|
+        get %r(/alliances/ticker/(.+).(xml|json)) do |ticker, format|
+            a = Alliance.filter(:ticker => ticker)
+            
+            if a.nil?
+                not_found
+            else
+                serialize(a, format)
+            end
+        end
+        
+        get %r(/alliances/name/(.+).(xml|json)) do |name, format|
+            a = Alliance.filter(:name => name)
+            
+            if a.nil?
+                not_found
+            else
+                serialize(a, format)
+            end
+        end
+        
+        # Players        
+        get %r{/players/id/([1-9]\d*).(xml|json)} do |id, format|
+            p = Player[id]
+            
+            if p.nil?
+                not_found
+            else
+                serialize(p, format)
+            end
+        end
+        
+        get %r{/players/name/(.{3,}).(xml|json)} do |name, format|
+            p = Player.filter(:name => name)
+            
+            if p.nil?
+                not_found
+            else
+                serialize(p, format)
+            end
+        end
+        
+        get %r{/players/name/(.{3,})/towns\.(xml|json)} do |name, format|
+            p = Player.filter(:name => name)
+            
+            if p.nil?
+                not_found
+            elsif format.upcase == "XML"
+                p.first.to_xml({ :only => [:id, :name], :include => :towns })
+            elsif format.upcase == "JSON"
+                p.first.to_json({ :only => [:id, :name], :include => :towns })
+            end
+        end
+        
+        # Towns        
+        get %r{/towns/id/([1-9]\d*).(xml|json)} do |id, format|
             t = Town[id]
             
             if t == nil
                 not_found
             else
-                t.to_xml(:root_name => "town")
+                serialize(t, format)
             end
         end
         
-        get %r{/towns/name/(.+)} do |name|
+        get %r{/towns/name/(.+).(xml|json)} do |name, format|
             t = Town.filter(:name => name)
             if t == nil
                 not_found
             else
-                t.to_xml(:array_root_name => "towns", :root_name => "town")
+                serialize(t, format)
             end
         end
         
