@@ -29,7 +29,13 @@ module IllyriadApi
         helpers do
             def serialize(data, format)
                 if format.upcase == "XML"
-                    data.to_xml
+                    classname = data.class.name.split('::').last.downcase
+                    if classname.upcase == "ARRAY"
+                        classname = data.first.class.name.split('::').last.downcase
+                        data.to_xml(:root_name => classname, :array_root_name => classname + "s")
+                    else
+                        data.to_xml(:root_name => classname)
+                    end
                 elsif format.upcase == "JSON"
                     data.to_json
                 else
@@ -122,15 +128,23 @@ module IllyriadApi
             end
         end
         
-        get %r{/players/name/(.{3,})/towns\.(xml|json)} do |name, format|
-            p = Player.filter(:name => name)
+        get %r{/players/id/([1-9]\d*)/towns\.(xml|json)} do |id, format|
+            p = Player[id]
             
             if p.nil?
                 not_found
-            elsif format.upcase == "XML"
-                p.first.to_xml({ :only => [:id, :name], :include => :towns })
-            elsif format.upcase == "JSON"
-                p.first.to_json({ :only => [:id, :name], :include => :towns })
+            else
+                serialize(Town.filter(:owner => p), format)
+            end
+        end
+        
+        get %r{/players/name/(.{3,})/towns\.(xml|json)} do |name, format|
+            p = Player.filter(:name => name).first
+            
+            if p.nil?
+                not_found
+            else
+                serialize(Town.filter(:owner => p), format)
             end
         end
         
