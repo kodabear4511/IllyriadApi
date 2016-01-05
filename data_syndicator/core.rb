@@ -8,6 +8,7 @@ rescue LoadError
     puts "LibXML not present, continuing with REXML..."
 end
 
+
 module IllyriadApi
     class DataSyndicator
     private
@@ -27,13 +28,13 @@ module IllyriadApi
             feeds = {
                 "towns" => {
                     :action => "parseTownData",
-                    :url => "http://uk1.illyriad.co.uk/data_downloads/datafile_towns.xml" },
+                    :url => "http://bestmagicbears.com/datafiles/datafile_towns.xml" },
                 "players" => {
                     :action => "parsePlayerData",
-                    :url => "http://uk1.illyriad.co.uk/data_downloads/datafile_players.xml" },
-                "alliances" => {
-                    :action => "parseAllianceData",
-                    :url => "http://uk1.illyriad.co.uk/data_downloads/datafile_alliances.xml" }
+                    :url => "http://bestmagicbears.com/datafiles/datafile_players.xml" },
+                 "alliances" => {
+                     :action => "parseAllianceData",
+                     :url => "http://bestmagicbears.com/datafiles/datafile_alliances.xml" }
             }
             
             # Parse and syndicate each data feed
@@ -47,6 +48,7 @@ module IllyriadApi
                 puts "Feed syndication completed in #{duration.to_s} seconds."
                 puts
             }
+			
             
             # Close DB connection
             puts "Disconnecting"
@@ -55,7 +57,9 @@ module IllyriadApi
     
         def parseTownData(xml)
             start = Time.now
+			
             townData = XMLObject.new xml
+		
             duration = Time.now - start
             
             @db[:feeds].insert(
@@ -91,14 +95,14 @@ module IllyriadApi
             puts "Town deltas logged in #{duration.to_s} seconds."
         end
         
-        def logTownDeltas!(newDate)
+def logTownDeltas!(newDate)
+						
             deltas = []
-        
-            oldTowns = @db[:towns].filter { data_timestamp < newDate }
-            currentTowns = @db[:towns].except(oldTowns)
-            
-            destroyedTownIDs = oldTowns.select(:town_id).except(currentTowns.select(:town_id)).collect { |d| d[:town_id] }
-            createdTownIDs = currentTowns.select(:town_id).except(oldTowns.select(:town_id)).collect { |c| c[:town_id] }
+        	
+currentTowns = @db[:towns].filter { data_timestamp >= newDate }
+
+  destroyedTownIDs = @db[:towns].select(:town_id).filter { data_timestamp < newDate }.collect { |d| d[:town_id] }
+  createdTownIDs = @db[:towns].select(:town_id).filter { data_timestamp >= newDate }.collect { |c| c[:town_id] }
             
             alteredTowns = Hash.new
             currentTowns.each { |town|
@@ -116,7 +120,8 @@ module IllyriadApi
                     :is_capital => 0,
                     :is_alliance_capital => 0)
             }
-            
+            	
+
             createdTownIDs.each { |c|
                 t = currentTowns.filter(:town_id => c).first
                 @db[:town_deltas].insert(
@@ -128,7 +133,9 @@ module IllyriadApi
                     :is_capital => t[:is_capital],
                     :is_alliance_capital => t[:is_alliance_capital])
             }
+            			
             
+
             # Delete old data, it's not needed anymore
             @db[:towns].filter{ data_timestamp < newDate }.delete
         end
@@ -203,6 +210,7 @@ module IllyriadApi
             duration = Time.now - start
             puts "Database populated in #{duration.to_s} seconds."
         end
+		
         
         def createTables!
             if @db.table_exists? :feeds
@@ -268,7 +276,9 @@ module IllyriadApi
                     {:id => 3, :name => "Dwarf"},
                     {:id => 4, :name => "Orc"}])
             end
-            
+            if @db.table_exists? :players
+                puts "player (*already created)"
+				else
             puts "Players"
             @db.create_table! :players do
                 Integer :id, :primary_key => true
@@ -277,19 +287,15 @@ module IllyriadApi
                 Integer :alliance_role_id, :null => true
                 String :name, :index => true
             end
-            
-            puts "Alliance Roles"
-            @db.create_table! :alliance_roles do
-                Integer :id, :primary_key => true
-                String :name, :index => true
-                foreign_key :alliance_id, :alliances
-                Integer :hierarchy_id
-            end
-            
-            puts "Alliances"
+			end
+		if @db.table_exists? :alliances
+                puts "alliances (*already created)"
+				else
+               puts "Alliances"
+
             @db.create_table! :alliances do
                 Integer :id, :primary_key => true
-                String :ticker, :index => true
+		        String :ticker, :index => true
                 String :name, :index => true
                 DateTime :founded_at
                 Integer :founded_by_player_id
@@ -300,6 +306,19 @@ module IllyriadApi
                 DateTime :tax_rate_last_changed_at, :null => true
                 DateTime :capital_town_last_moved_at, :null => true
             end
+end
+			if @db.table_exists? :alliance_roles
+                puts "alliances (*already created)"
+				else
+            puts "Alliance Roles"
+            @db.create_table! :alliance_roles do
+                Integer :id, :primary_key => true
+                String :name, :index => true
+                foreign_key :alliance_id, :alliances
+                Integer :hierarchy_id
+            end
+            
+         end
             
             #addForeignKeys!
         end
