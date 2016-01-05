@@ -30,6 +30,3 @@ end
 map '/' do
     run IllyriadAp::Service
 end
-map '/' do
-    run IllyriadApi::Service
-end
