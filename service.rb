@@ -2,24 +2,28 @@
 require 'rubygems'
 require 'sinatra/base'
 require 'sequel'
+require 'pry'
+
+
+
 
 module IllyriadApi
-    # class ServiceConfig
-        # private
-        # @connection_string = nil
-        
-        # public
-        # begin
-            # require 'psych'
-        # rescue LoadError
-            # Can't find the psych library
+#class ServiceConfig
+ #        private
+  #       @connection_string = nil
+   #     
+    #     public
+     #    begin
+      #       require 'psych'
+       #  rescue LoadError
+        #     Cant find the psych library
         # end
         # require 'yaml'
         
-        # def load(filePath)
-            # YAML::load(filePath)
-        # end
-    # end
+    #     def load(filePath)
+     #        YAML::load(filePath)
+      #  end
+#    end
 
     class Service < Sinatra::Base
     private
@@ -62,9 +66,9 @@ module IllyriadApi
     
         # Application route handling
         # 404
-        not_found do
-            "This is not the page you're looking for."
-        end
+        # not_found do
+            # "This is not the page you're looking for."
+        # end
         
         # Errors
         # error do
@@ -168,9 +172,9 @@ module IllyriadApi
             end
         end
         
-        # Map
-        # get %r{/map/(^-?\d{1,3}$)/(^-?\d{1,3}$)} do |x, y|
-            # "Get map square (#{x}, #{y})"
-        # end
+      #Map
+         get %r{/map/(^-?\d{1,3}$)/(^-?\d{1,3}$)} do |x, y|
+             "Get map square (#{x}, #{y})"
+         end
     end
 end
