@@ -1,15 +1,15 @@
 #!/usr/bin/env ruby
-ENV['GEM_HOME'] = '/home/mattgawa/ruby/gems'
-
 require 'sequel'
-require './scripts/data_syndicator/core.rb'
+require './data_syndicator/core.rb'
+ENV['GEM_HOME'] = 'C:Ruby22/lib/ruby/gems/2.2.0/gems/'
 
 DB = Sequel.connect(
-    :adapter => 'mysql',
+   :adapter => 'mysql',
     :host => 'localhost',
-    :database => 'mattgawa_illyriad',
-    :user => 'mattgawa_illy',
-    :password => 'Rom4n@Slydr')
+    :database => 'database',
+    :user => 'user',
+    :password => 'password')
+
 
 start = Time.now
 
