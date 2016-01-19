@@ -98,7 +98,7 @@ module IllyriadApi
 def logTownDeltas!(newDate)
 						
             deltas = []
-        	old = @db[:towns].filter {data_timestamp < newData } was added to that code
+        	old = @db[:towns].filter {data_timestamp < newData }
 currentTowns = @db[:towns].filter { data_timestamp >= newDate }
 
   destroyedTownIDs = @db[:towns].select(:town_id).filter { data_timestamp < newDate }.collect { |d| d[:town_id] }
